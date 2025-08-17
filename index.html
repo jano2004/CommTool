@@ -3,56 +3,115 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Alphabet-Scroll</title>
+    <title>Alphabet-Scroll mit Wortausgabe</title>
     <style>
-      .container { height: 90vh; width: 100%; }
+      :root { --gap: 20px; }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif; }
+
+      .container { min-height: 100vh; display: flex; flex-direction: column; }
+
       .secondContainer {
         height: 500px; width: 100%;
-        display: flex; flex-direction: row; gap: 20px;
+        display: flex; flex-direction: row; gap: var(--gap);
         overflow-x: auto; overflow-y: hidden;
         padding: 10px 10px 10px 0;
+        scroll-snap-type: x proximity;
       }
+
       .letterContainer {
-        height: 400px; min-width: 400px;
-        border: 2px solid #000;
+        height: 300px; min-width: 300px;
+        border: 2px solid #000; border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         font-size: 15rem; line-height: 1;
+        scroll-snap-align: start;
+        user-select: none; cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease;
       }
+      .letterContainer:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .letterContainer p { margin: 0; }
+
+      .outputBar {
+        margin-top: auto;
+        border-top: 1px solid #e5e5e5;
+        padding: 16px;
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        position: sticky; bottom: 0; background: #fff;
+      }
+      .label { font-weight: 600; }
+      .word {
+        min-height: 2.5rem; min-width: 6ch;
+        padding: 8px 12px; border: 2px solid #000; border-radius: 10px;
+        font-size: 1.4rem; letter-spacing: .08em;
+        display: inline-flex; align-items: center;
+        background: #fafafa;
+      }
+      .controls { display: inline-flex; gap: 8px; }
+      button {
+        border: 1px solid #ccc; background: #f6f6f6; border-radius: 8px;
+        padding: 8px 10px; font-size: 0.95rem; cursor: pointer;
+      }
+      button:hover { background: #efefef; }
+
       @media (max-width: 600px) {
         .letterContainer { height: 260px; min-width: 260px; font-size: 9rem; }
+        .word { font-size: 1.2rem; }
       }
     </style>
   </head>
   <body>
-    <div class="App container">
-      <div class="secondContainer">
-        <div class="letterContainer"><p>A</p></div>
-        <div class="letterContainer"><p>B</p></div>
-        <div class="letterContainer"><p>C</p></div>
-        <div class="letterContainer"><p>D</p></div>
-        <div class="letterContainer"><p>E</p></div>
-        <div class="letterContainer"><p>F</p></div>
-        <div class="letterContainer"><p>G</p></div>
-        <div class="letterContainer"><p>H</p></div>
-        <div class="letterContainer"><p>I</p></div>
-        <div class="letterContainer"><p>J</p></div>
-        <div class="letterContainer"><p>K</p></div>
-        <div class="letterContainer"><p>L</p></div>
-        <div class="letterContainer"><p>M</p></div>
-        <div class="letterContainer"><p>N</p></div>
-        <div class="letterContainer"><p>O</p></div>
-        <div class="letterContainer"><p>P</p></div>
-        <div class="letterContainer"><p>Q</p></div>
-        <div class="letterContainer"><p>R</p></div>
-        <div class="letterContainer"><p>S</p></div>
-        <div class="letterContainer"><p>T</p></div>
-        <div class="letterContainer"><p>U</p></div>
-        <div class="letterContainer"><p>V</p></div>
-        <div class="letterContainer"><p>W</p></div>
-        <div class="letterContainer"><p>X</p></div>
-        <div class="letterContainer"><p>Y</p></div>
-        <div class="letterContainer"><p>Z</p></div>
+    <div class="container">
+      <div class="secondContainer" id="letters">
+      </div>
+
+      <div class="outputBar">
+        <span class="label">Wort:</span>
+        <span class="word" id="output"></span>
+        <div class="controls">
+          <button id="backspace" aria-label="letzten Buchstaben löschen">⌫ Löschen</button>
+          <button id="clear" aria-label="Wort leeren">Leeren</button>
+        </div>
       </div>
     </div>
+
+    <script>
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      const lettersEl = document.getElementById("letters");
+      const outputEl  = document.getElementById("output");
+      const backspaceBtn = document.getElementById("backspace");
+      const clearBtn     = document.getElementById("clear");
+
+      // Buchstaben-Karten bauen
+      alphabet.forEach(ch => {
+        const card = document.createElement("div");
+        card.className = "letterContainer";
+        card.setAttribute("data-letter", ch);
+        card.innerHTML = `<p>${ch}</p>`;
+        lettersEl.appendChild(card);
+      });
+
+      lettersEl.addEventListener("click", (e) => {
+        const card = e.target.closest(".letterContainer");
+        if (!card) return;
+        const ch = card.getAttribute("data-letter");
+        outputEl.textContent += ch;
+      });
+
+      backspaceBtn.addEventListener("click", () => {
+        outputEl.textContent = outputEl.textContent.slice(0, -1);
+      });
+      clearBtn.addEventListener("click", () => {
+        outputEl.textContent = "";
+      });
+
+      document.addEventListener("keydown", (e) => {
+        const k = e.key.toUpperCase();
+        if (alphabet.includes(k)) {
+          outputEl.textContent += k;
+        } else if (e.key === "Backspace") {
+          outputEl.textContent = outputEl.textContent.slice(0, -1);
+          e.preventDefault();
+        }
+      });
+    </script>
   </body>
 </html>
